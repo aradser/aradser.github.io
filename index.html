@@ -63,8 +63,8 @@ class ViewController: UIViewController {
     Timer.scheduledTimer(withTimeInterval: 0.5,
                          repeats: true) { _ in
       let randomPoint = CGPoint(
-        x: CGFloat.random(in: 0..<self.arView.bounds.width),
-        y: CGFloat.random(in: 0..<self.arView.bounds.height)
+        x: CGFloat.random(in: 0..&lt;self.arView.bounds.width),
+        y: CGFloat.random(in: 0..&lt;self.arView.bounds.height)
       )
       self.placeDiglett(location: randomPoint)
     }
