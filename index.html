@@ -1,10 +1,124 @@
 <html>
   <head>
     <title>aradser</title>
+    <link href="themes/prism.css" rel="stylesheet" />
   </head>
   <body>
     AR code will be here soon!<br/>
     See you at RS2021
+    
+    <code class="language-swift">
+//
+//  ViewController.swift
+//  Dig the Diglett
+//
+//  Created by Arad Seroussi on 26/12/2021.
+//
+
+import UIKit
+import RealityKit
+
+class ViewController: UIViewController {
+  
+  // Our ARView from the UI
+  @IBOutlet var arView: ARView!
+  
+  // Preload model
+  let model = try! ModelEntity.loadModel(named: "diglett")
+  
+  // Score
+  var score = 0
+  let scoreLabel = UILabel()
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    // Enable occlusion with real world
+    arView.environment.sceneUnderstanding.options.insert(.occlusion)
+    
+    // Uncomment to enable scene physics
+//    arView.environment.sceneUnderstanding.options.insert(.physics)
+    
+    // Setup score text label
+    scoreLabel.frame = CGRect(
+      x: 140,
+      y: 40,
+      width: 200,
+      height: 100
+    )
+    scoreLabel.textColor = .white
+    scoreLabel.font = .systemFont(
+      ofSize: 20,
+      weight: .bold
+    )
+    view.addSubview(scoreLabel)
+    
+    // Call handelTap when tapping the screen
+    arView.addGestureRecognizer(UITapGestureRecognizer(
+      target: self,
+      action: #selector(self.handleTap(_:)))
+    )
+    
+    // Spawn a random diglett every half a second
+    Timer.scheduledTimer(withTimeInterval: 0.5,
+                         repeats: true) { _ in
+      let randomPoint = CGPoint(
+        x: CGFloat.random(in: 0..<self.arView.bounds.width),
+        y: CGFloat.random(in: 0..<self.arView.bounds.height)
+      )
+      self.placeDiglett(location: randomPoint)
+    }
+  }
+  
+  @objc func handleTap(_ gesture: UITapGestureRecognizer) {
+    let tapLocation = gesture.location(in: arView)
+    
+    // If we tapped a diglett, dig it out (and increase score)
+    if let entity = arView.entity(at: tapLocation) {
+      entity.anchor?.removeFromParent()
+      score += 100
+      scoreLabel.text = "Score: \(score)"
+    }
+  }
+  
+  func placeDiglett(location: CGPoint) {
+    // Raycast to find where to place the diglett using the 2D screen point
+    let rays = arView.raycast(from: location,
+                   allowing: .estimatedPlane,
+                   alignment: .any)
+    
+    if let ray = rays.first {
+      // Clone preloaded model
+      let model = model.clone(recursive: true)
+      
+      // Add collision to diglett is tappable
+      model.generateCollisionShapes(recursive: true)
+      
+      // Uncomment to enable diglett physics
+//      model.physicsBody = .init()
+      
+      // Create an anchor in the tapped 3D position
+      let anchor = AnchorEntity(world: ray.worldTransform)
+      
+      // Add model to anchor
+      anchor.addChild(model)
+      
+      // Add anchor to scene
+      arView.scene.addAnchor(anchor)
+      
+      // Animate diglett entrance
+      let finalTranform = model.transform
+      model.transform.scale = [0, 0, 0]
+      model.move(to: finalTranform,
+                 relativeTo: anchor,
+                 duration: 0.3)
+    }
+  }
+}
+
+    </code>
+    
+    <script src="prism.js"></script>
   </body>
 </html>
    
