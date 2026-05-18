@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>קל-גב • בחירת תיק</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff7ec;
+    --ink: #1a1340;
+    --pink: #ff5b9e;
+    --yellow: #ffd43b;
+    --green: #34d399;
+    --red: #ef4444;
+    --blue: #4f7cff;
+    --purple: #9b59ff;
+    --card-shadow: 0 20px 50px -10px rgba(26, 19, 64, 0.35), 0 8px 20px -8px rgba(255, 91, 158, 0.25);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Rubik', system-ui, sans-serif;
+    height: 100dvh;
+    width: 100vw;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body { touch-action: none; }
+  body.allow-scroll { touch-action: auto; overflow: auto; }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(-45deg, transparent 0, transparent 24px, rgba(255, 212, 59, 0.08) 24px, rgba(255, 212, 59, 0.08) 26px),
+      radial-gradient(circle at 20% 10%, rgba(255, 91, 158, 0.12), transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(79, 124, 255, 0.10), transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .app {
+    position: relative;
+    z-index: 1;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  }
+  header {
+    flex-shrink: 0;
+    padding: 16px 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .brand {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .brand span {
+    background: var(--pink);
+    color: #fff;
+    padding: 2px 10px 4px;
+    border-radius: 999px;
+    transform: rotate(-3deg);
+    display: inline-block;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .counter {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    background: var(--ink);
+    color: var(--yellow);
+    padding: 6px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .tabs {
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+    margin: 4px 0 10px;
+    padding: 4px;
+    background: rgba(26, 19, 64, 0.08);
+    border-radius: 999px;
+  }
+  .tab {
+    flex: 1;
+    padding: 11px 10px;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .tab.active {
+    background: var(--ink);
+    color: var(--yellow);
+    box-shadow: 0 4px 12px rgba(26, 19, 64, 0.3);
+  }
+  .tab .heart-count {
+    display: inline-block;
+    background: var(--pink);
+    color: #fff;
+    border-radius: 999px;
+    padding: 0 7px;
+    font-size: 12px;
+    margin-inline-start: 4px;
+    min-width: 20px;
+  }
+
+  /* Gender filter chips (browse view) */
+  .gender-bar {
+    flex-shrink: 0;
+    display: flex;
+    gap: 6px;
+    padding: 0 2px 8px;
+    justify-content: center;
+  }
+  .gender-chip {
+    background: #fff;
+    border: 2.5px solid var(--ink);
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--ink);
+    transition: transform 0.1s;
+  }
+  .gender-chip:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+  .gender-chip.active {
+    background: var(--ink);
+    color: var(--yellow);
+  }
+  .gender-chip.boys.active { background: var(--blue); color: #fff; border-color: var(--ink); }
+  .gender-chip.girls.active { background: var(--pink); color: #fff; border-color: var(--ink); }
+
+  .stack {
+    flex: 1;
+    position: relative;
+    margin: 4px 0;
+    min-height: 0;
+  }
+  .card {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    border-radius: 32px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    will-change: transform;
+    display: flex;
+    flex-direction: column;
+    border: 3px solid var(--ink);
+  }
+  .card.behind { transform: scale(0.94) translateY(14px); opacity: 0.6; pointer-events: none; }
+  .card.way-behind { transform: scale(0.88) translateY(28px); opacity: 0; pointer-events: none; }
+  .card.dragging { transition: none !important; }
+  .card.swiping { transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .card-img {
+    flex: 1;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #faf7ff;
+    position: relative;
+    min-height: 0;
+    cursor: zoom-in;
+  }
+  .card-info {
+    flex-shrink: 0;
+    padding: 16px 20px 18px;
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-name {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.1;
+    flex: 1;
+    min-width: 0;
+  }
+  .card-code {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    background: var(--yellow);
+    color: var(--ink);
+    padding: 6px 11px;
+    border-radius: 8px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .stamp {
+    position: absolute;
+    top: 32px;
+    padding: 10px 22px;
+    border: 5px solid;
+    border-radius: 14px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 0.08em;
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .stamp.like { inset-inline-start: 24px; color: var(--green); border-color: var(--green); transform: rotate(-12deg); background: rgba(255, 255, 255, 0.95); }
+  .stamp.nope { inset-inline-end: 24px; color: var(--red); border-color: var(--red); transform: rotate(12deg); background: rgba(255, 255, 255, 0.95); }
+
+  /* Action buttons - SWAPPED ORDER (like on left, nope on right) */
+  .actions {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 0 14px;
+  }
+  .btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid var(--ink);
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 5px 0 var(--ink);
+    color: var(--ink);
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+  .btn.nope { color: var(--red); }
+  .btn.like {
+    color: var(--pink);
+    width: 76px;
+    height: 76px;
+    font-size: 34px;
+  }
+  .btn.undo { color: var(--blue); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: 0 2px 0 var(--ink); transform: translateY(2px); }
+
+  .empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    gap: 14px;
+  }
+  .empty-emoji {
+    font-size: 72px;
+    transform: rotate(-8deg);
+    filter: drop-shadow(0 6px 0 var(--ink));
+  }
+  .empty-title { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 26px; line-height: 1.2; }
+  .empty-sub { font-size: 15px; opacity: 0.7; max-width: 280px; line-height: 1.5; }
+
+  /* Liked view */
+  .liked-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .liked-controls {
+    flex-shrink: 0;
+    padding: 0 2px 10px;
+  }
+  .vs-launch {
+    width: 100%;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    color: #fff;
+    border: 3px solid var(--ink);
+    padding: 14px 20px;
+    border-radius: 18px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 var(--ink);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .vs-launch:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+  .vs-launch:disabled { opacity: 0.5; cursor: not-allowed; }
+  .chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    background: #fff;
+    border: 2px solid var(--ink);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip.active { background: var(--ink); color: var(--yellow); }
+
+  .grid-wrap {
+    flex: 1;
+    overflow-y: auto;
+    touch-action: pan-y;
+    padding: 4px 4px 12px;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .grid-item {
+    background: #fff;
+    border-radius: 22px;
+    border: 3px solid var(--ink);
+    overflow: hidden;
+    box-shadow: 0 6px 0 var(--ink);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .grid-img {
+    aspect-ratio: 1 / 1;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #faf7ff;
+    cursor: zoom-in;
+  }
+  .grid-info {
+    padding: 9px 11px;
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .grid-name {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+  .grid-code {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    background: var(--yellow);
+    color: var(--ink);
+    padding: 3px 6px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+  .grid-remove {
+    position: absolute;
+    top: 8px;
+    inset-inline-end: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--red);
+    box-shadow: 0 2px 0 var(--ink);
+    z-index: 2;
+  }
+  .grid-remove:active { transform: translateY(2px); box-shadow: none; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30%;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+    z-index: 200;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Done screen */
+  .done-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    text-align: center;
+  }
+  .done-emoji {
+    font-size: 84px;
+    animation: bounce 1.6s infinite cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-14px) rotate(5deg); }
+  }
+  .done-title { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 32px; line-height: 1.1; }
+  .done-sub { font-size: 16px; opacity: 0.7; }
+  .done-btn {
+    margin-top: 4px;
+    background: var(--pink);
+    color: #fff;
+    border: 3px solid var(--ink);
+    padding: 14px 28px;
+    border-radius: 999px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 var(--ink);
+  }
+  .done-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+  .done-btn.alt { background: var(--yellow); color: var(--ink); }
+  .done-btn.alt2 { background: var(--purple); color: #fff; }
+
+  .hidden { display: none !important; }
+  .hint {
+    text-align: center;
+    font-size: 12px;
+    opacity: 0.55;
+    margin: -2px 0 4px;
+    font-weight: 500;
+  }
+
+  /* ====== VS MODE ====== */
+  .vs-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(160deg, #1a1340, #4a2080);
+    z-index: 150;
+    display: none;
+    flex-direction: column;
+    padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .vs-overlay.show { display: flex; }
+  .vs-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255, 91, 158, 0.3), transparent 40%),
+      radial-gradient(circle at 70% 80%, rgba(255, 212, 59, 0.2), transparent 40%);
+    pointer-events: none;
+  }
+  .vs-header {
+    flex-shrink: 0;
+    padding: 16px 4px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    position: relative;
+    z-index: 2;
+  }
+  .vs-close {
+    background: rgba(255,255,255,0.15);
+    border: 2px solid #fff;
+    color: #fff;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .vs-progress {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    background: rgba(255,255,255,0.15);
+    padding: 8px 16px;
+    border-radius: 999px;
+  }
+  .vs-title-bar {
+    flex-shrink: 0;
+    text-align: center;
+    color: #fff;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    padding: 6px 0 14px;
+    position: relative;
+    z-index: 2;
+  }
+  .vs-arena {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .vs-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 24px;
+    border: 4px solid #fff;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-height: 0;
+    position: relative;
+  }
+  .vs-card.winner { animation: winnerPulse 0.6s ease-out; }
+  .vs-card.loser { animation: loserFade 0.5s ease-out forwards; }
+  @keyframes winnerPulse {
+    0% { transform: scale(1); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 40px var(--yellow); }
+    100% { transform: scale(1); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+  }
+  @keyframes loserFade {
+    to { transform: scale(0.8) rotate(-3deg); opacity: 0.2; }
+  }
+  .vs-card-img {
+    flex: 1;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #faf7ff;
+    min-height: 0;
+    position: relative;
+    cursor: zoom-in;
+  }
+  .vs-card-pick {
+    flex-shrink: 0;
+    width: 100%;
+    border: none;
+    background: linear-gradient(135deg, var(--green), #16a34a);
+    color: #fff;
+    padding: 16px 12px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    border-top: 3px solid var(--ink);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .vs-card-pick:active {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    padding-top: 18px;
+    padding-bottom: 14px;
+  }
+  .vs-card-pick .check {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .vs-card-info {
+    flex-shrink: 0;
+    padding: 12px 16px;
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .vs-card-name {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .vs-card-code {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    background: var(--yellow);
+    color: var(--ink);
+    padding: 4px 9px;
+    border-radius: 6px;
+  }
+  .vs-divider {
+    flex-shrink: 0;
+    text-align: center;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 900;
+    font-size: 32px;
+    color: var(--yellow);
+    text-shadow: 3px 3px 0 var(--ink), -2px -2px 0 var(--pink);
+    transform: rotate(-4deg);
+    letter-spacing: 0.08em;
+    padding: 4px 0;
+    position: relative;
+  }
+  .vs-divider::before, .vs-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 3px;
+    background: #fff;
+    border-radius: 2px;
+  }
+  .vs-divider::before { right: 8%; }
+  .vs-divider::after { left: 8%; }
+  .vs-instruction {
+    flex-shrink: 0;
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+    padding: 4px 0;
+    font-weight: 500;
+  }
+  .vs-winner-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    gap: 14px;
+    text-align: center;
+    z-index: 3;
+  }
+  .vs-trophy {
+    font-size: 72px;
+    animation: trophy 1.2s ease-in-out infinite;
+  }
+  @keyframes trophy {
+    0%,100% { transform: rotate(-8deg) scale(1); }
+    50% { transform: rotate(8deg) scale(1.1); }
+  }
+  .vs-winner-title {
+    color: var(--yellow);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 1.1;
+  }
+  .vs-winner-card {
+    width: 80%;
+    max-width: 280px;
+    background: #fff;
+    border-radius: 24px;
+    border: 4px solid var(--yellow);
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(255, 212, 59, 0.5);
+    animation: pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    cursor: pointer;
+  }
+  .vs-winner-img {
+    aspect-ratio: 1 / 1;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #faf7ff;
+  }
+  .vs-winner-info {
+    padding: 12px 16px;
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .vs-winner-name {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+  }
+  .vs-winner-code {
+    background: var(--yellow);
+    color: var(--ink);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* ====== LIGHTBOX ====== */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 5, 30, 0.95);
+    z-index: 250;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    cursor: zoom-out;
+  }
+  .lightbox.show { display: flex; }
+  .lightbox img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    animation: zoomIn 0.25s ease-out;
+  }
+  @keyframes zoomIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .lightbox-close {
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 16px);
+    inset-inline-end: 16px;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid #fff;
+    color: #fff;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox-label {
+    position: absolute;
+    bottom: calc(env(safe-area-inset-bottom) + 24px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 2px solid var(--yellow);
+  }
+  .lightbox-label .code {
+    background: var(--yellow);
+    color: var(--ink);
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">קל-גב <span>בחירה</span></div>
+    <div class="counter" id="counter">— / —</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="browse">גלה תיקים</button>
+    <button class="tab" data-tab="liked">
+      ❤ אהבתי <span class="heart-count" id="heart-count">0</span>
+    </button>
+  </div>
+
+  <!-- Gender filter (browse only) -->
+  <div class="gender-bar" id="gender-bar">
+    <button class="gender-chip active" data-gender="all">הכל</button>
+    <button class="gender-chip boys" data-gender="boys">בנים</button>
+    <button class="gender-chip girls" data-gender="girls">בנות</button>
+  </div>
+
+  <div class="hint" id="hint">החלק ימינה לאהוב • החלק שמאלה לדלג</div>
+
+  <div class="stack" id="stack"></div>
+
+  <!-- Bottom action buttons - SWAPPED: like on the LEFT, nope on the RIGHT (visual) -->
+  <!-- In RTL the visual leftmost is the LAST DOM element -->
+  <div class="actions" id="actions">
+    <button class="btn like" id="btn-like" aria-label="אהבתי">♥</button>
+    <button class="btn undo" id="btn-undo" aria-label="חזרה" disabled>↺</button>
+    <button class="btn nope" id="btn-nope" aria-label="דלג">✕</button>
+  </div>
+</div>
+
+<!-- VS Mode overlay -->
+<div class="vs-overlay" id="vs-overlay">
+  <div class="vs-header">
+    <button class="vs-close" id="vs-close" aria-label="סגור">✕</button>
+    <div class="vs-progress" id="vs-progress">— / —</div>
+  </div>
+  <div class="vs-title-bar" id="vs-title">מי עדיף?</div>
+  <div class="vs-arena" id="vs-arena"></div>
+  <div class="vs-instruction">הקש על "בחר בזה" כדי לבחור • הקש על התמונה להגדלה</div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close" aria-label="סגור">✕</button>
+  <img id="lightbox-img" src="" alt="">
+  <div class="lightbox-label" id="lightbox-label"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KITS = [{"code": "93609", "name": "משחק כדורגל", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93609_soccer-game.jpg"}, {"code": "93299", "name": "מאנצ'סטר סיטי", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93299_man-city.jpg"}, {"code": "93298", "name": "NBA", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93298_NBA.jpg"}, {"code": "93602", "name": "הנוקמים", "cat": "characters", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93602_avengers.jpg"}, {"code": "93601", "name": "ספיידרמן", "cat": "characters", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93601_spiderman-b.jpg"}, {"code": "93600", "name": "ספיידרמן", "cat": "characters", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93600_spiderman-a.jpg"}, {"code": "93612", "name": "כדורגל", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93612_soccer-gold-a.jpg"}, {"code": "93611", "name": "כדורגל", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93611_soccer-gold-b.jpg"}, {"code": "93610", "name": "משחק כדורגל", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93610_soccer-game-b.jpg"}, {"code": "93605", "name": "פורטנייט", "cat": "characters", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93605_fortnite.jpg"}, {"code": "93604", "name": "סוניק DC", "cat": "characters", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93604_sonic.jpg"}, {"code": "93603", "name": "באטמן", "cat": "characters", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93603_batman.jpg"}, {"code": "93615", "name": "חלל", "cat": "themes", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93615_space.jpg"}, {"code": "93614", "name": "כדורסל", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93614_basketball.jpg"}, {"code": "93613", "name": "כדורגל", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93613_soccer-glow.jpg"}, {"code": "93608", "name": "ריאל מדריד", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93608_real-madrid.jpg"}, {"code": "93607", "name": "ברצלונה FCB", "cat": "sports", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93607_barcelona.jpg"}, {"code": "93606", "name": "מיניונים", "cat": "characters", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93606_minions.jpg"}, {"code": "93624", "name": "סטיץ'", "cat": "characters", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93624_stitch-a.jpg"}, {"code": "93623", "name": "סטיץ' זוג", "cat": "characters", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93623_stitch-pair.jpg"}, {"code": "93622", "name": "מיני מאוס", "cat": "characters", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93622_minnie-mouse.jpg"}, {"code": "93618", "name": "דרקונים", "cat": "themes", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93618_dragons.jpg"}, {"code": "93617", "name": "רובוט", "cat": "themes", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93617_robot.jpg"}, {"code": "93616", "name": "אופנוע", "cat": "themes", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93616_motorcycle.jpg"}, {"code": "93627", "name": "הלו קיטי", "cat": "characters", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93627_hello-kitty.jpg"}, {"code": "93626", "name": "במבי", "cat": "characters", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93626_bambi.jpg"}, {"code": "93625", "name": "סטיץ'", "cat": "characters", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93625_stitch-b.jpg"}, {"code": "93315", "name": "גיימינג", "cat": "themes", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93315_gaming-a.jpg"}, {"code": "93620", "name": "גיימינג", "cat": "themes", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93620_gaming-b.jpg"}, {"code": "93619", "name": "דולפינים", "cat": "animals", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93619_dolphins.jpg"}, {"code": "93630", "name": "ווינקס", "cat": "characters", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93630_winx.jpg"}, {"code": "93629", "name": "ברבי", "cat": "characters", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93629_barbie.jpg"}, {"code": "93628", "name": "קורומי", "cat": "characters", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93628_kuromi.jpg"}, {"code": "93621", "name": "PLAY", "cat": "themes", "gender": "boys", "img": "https://aradser.github.io/kalgav/kits/93621_play.jpg"}, {"code": "93335", "name": "פנדה", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93335_panda.jpg"}, {"code": "93638", "name": "מתוקונת", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93638_sweet-mouse.jpg"}, {"code": "93637", "name": "קואלה", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93637_koala.jpg"}, {"code": "93633", "name": "גלידה", "cat": "themes", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93633_ice-cream.jpg"}, {"code": "93632", "name": "קשת בענן", "cat": "themes", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93632_rainbow.jpg"}, {"code": "93631", "name": "אהבה", "cat": "themes", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93631_love.jpg"}, {"code": "93337", "name": "איילה", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93337_deer-a.jpg"}, {"code": "93336", "name": "איילה", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93336_deer-b.jpg"}, {"code": "93639", "name": "איילת יער", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93639_forest-deer.jpg"}, {"code": "93330", "name": "חתולה בחלל", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93330_cat-in-space.jpg"}, {"code": "93635", "name": "כלבלב", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93635_puppy.jpg"}, {"code": "93634", "name": "פרפרים", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93634_butterflies.jpg"}, {"code": "93642", "name": "חד-קרן קסום", "cat": "fantasy", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93642_unicorn-magic.jpg"}, {"code": "93641", "name": "חד-קרן קווילט", "cat": "fantasy", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93641_unicorn-quilt.jpg"}, {"code": "93640", "name": "חד-קרן", "cat": "fantasy", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93640_unicorn.jpg"}, {"code": "93333", "name": "חתולה", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93333_cat-a.jpg"}, {"code": "93636", "name": "חתולה", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93636_cat-b.jpg"}, {"code": "93331", "name": "ינשופה", "cat": "animals", "gender": "girls", "img": "https://aradser.github.io/kalgav/kits/93331_owl.jpg"}];
+
+const CAT_LABELS = {
+  all: 'הכל',
+  characters: 'דמויות',
+  sports: 'ספורט',
+  animals: 'חיות',
+  fantasy: 'קסום',
+  themes: 'נושאים'
+};
+
+const STORAGE_KEY = 'kalgav_likes_v2';
+const SEEN_KEY = 'kalgav_seen_v2';
+const GENDER_KEY = 'kalgav_gender_v2';
+
+let liked = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+let seen = new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'));
+let genderFilter = localStorage.getItem(GENDER_KEY) || 'all';
+let history = [];
+let currentTab = 'browse';
+let filterCat = 'all';
+
+// VS mode state
+let vsMode = false;
+let vsRemaining = []; // codes still in tournament
+let vsCurrentPair = null;
+let vsTotalStart = 0;
+
+function saveLikes() { localStorage.setItem(STORAGE_KEY, JSON.stringify([...liked])); }
+function saveSeen() { localStorage.setItem(SEEN_KEY, JSON.stringify([...seen])); }
+function saveGender() { localStorage.setItem(GENDER_KEY, genderFilter); }
+
+function pool() {
+  if (genderFilter === 'all') return KITS;
+  return KITS.filter(k => k.gender === genderFilter);
+}
+
+function getQueue() {
+  return pool().filter(k => !seen.has(k.code));
+}
+
+function updateCounter() {
+  if (currentTab === 'browse') {
+    const p = pool();
+    const remaining = getQueue().length;
+    document.getElementById('counter').textContent = `${p.length - remaining} / ${p.length}`;
+  } else {
+    document.getElementById('counter').textContent = `${liked.size} ❤`;
+  }
+  document.getElementById('heart-count').textContent = liked.size;
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 1400);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ============ LIGHTBOX ============
+function openLightbox(kit) {
+  const lb = document.getElementById('lightbox');
+  document.getElementById('lightbox-img').src = kit.img;
+  document.getElementById('lightbox-label').innerHTML =
+    `<span>${escapeHtml(kit.name)}</span><span class="code">${kit.code}</span>`;
+  lb.classList.add('show');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+}
+document.getElementById('lightbox').addEventListener('click', (e) => {
+  if (e.target.id !== 'lightbox-img') closeLightbox();
+});
+document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+
+// ============ BROWSE / SWIPE ============
+function renderStack() {
+  const stack = document.getElementById('stack');
+  stack.innerHTML = '';
+  const queue = getQueue();
+
+  document.getElementById('gender-bar').classList.remove('hidden');
+
+  if (queue.length === 0) {
+    renderDone();
+    return;
+  }
+
+  document.getElementById('actions').classList.remove('hidden');
+  document.getElementById('hint').classList.remove('hidden');
+
+  const visible = queue.slice(0, 3);
+  visible.forEach((kit, i) => {
+    const card = document.createElement('div');
+    card.className = 'card' + (i === 1 ? ' behind' : i === 2 ? ' way-behind' : '');
+    card.dataset.code = kit.code;
+    card.innerHTML = `
+      <div class="stamp like">LIKE</div>
+      <div class="stamp nope">NOPE</div>
+      <div class="card-img" style="background-image:url('${kit.img}')"></div>
+      <div class="card-info">
+        <div class="card-name">${escapeHtml(kit.name)}</div>
+        <div class="card-code">${kit.code}</div>
+      </div>
+    `;
+    stack.appendChild(card);
+  });
+
+  const cards = stack.querySelectorAll('.card');
+  cards.forEach((c, i) => { c.style.zIndex = 10 - i; });
+  attachSwipe(cards[0], visible[0]);
+
+  // Preload upcoming kit images so swipes feel snappy
+  queue.slice(3, 8).forEach(kit => {
+    const preload = new Image();
+    preload.src = kit.img;
+  });
+
+  updateCounter();
+}
+
+function renderDone() {
+  const stack = document.getElementById('stack');
+  const likedCount = liked.size;
+  const genderLabel = genderFilter === 'all' ? '' : (genderFilter === 'boys' ? ' (בנים)' : ' (בנות)');
+  stack.innerHTML = `
+    <div class="done-screen">
+      <div class="done-emoji">🎒</div>
+      <div class="done-title">סיימת לעבור על הכל${genderLabel}!</div>
+      <div class="done-sub">
+        ${likedCount > 0 ? `אהבת ${likedCount} ${likedCount === 1 ? 'תיק' : 'תיקים'}` : 'לא סימנת אף תיק כאהוב'}
+      </div>
+      ${likedCount > 0 ? `<button class="done-btn" id="done-go-liked">צפה באהובים ❤</button>` : ''}
+      <button class="done-btn alt" id="done-reset">התחל מחדש 🔄</button>
+    </div>
+  `;
+  document.getElementById('actions').classList.add('hidden');
+  document.getElementById('hint').classList.add('hidden');
+  document.getElementById('done-reset').addEventListener('click', resetSeen);
+  const goLiked = document.getElementById('done-go-liked');
+  if (goLiked) goLiked.addEventListener('click', () => switchTab('liked'));
+  updateCounter();
+}
+
+function attachSwipe(card, kit) {
+  if (!card) return;
+  let startX = 0, startY = 0, currentX = 0, currentY = 0;
+  let dragging = false;
+  let pointerId = null;
+  let startTime = 0;
+  let moved = false;
+
+  const stamp_like = card.querySelector('.stamp.like');
+  const stamp_nope = card.querySelector('.stamp.nope');
+  const cardImg = card.querySelector('.card-img');
+
+  function onStart(e) {
+    if (e.target.closest('.card-info')) return;
+    pointerId = e.pointerId;
+    try { card.setPointerCapture(pointerId); } catch (_) {}
+    startX = e.clientX;
+    startY = e.clientY;
+    startTime = Date.now();
+    moved = false;
+    dragging = true;
+    card.classList.add('dragging');
+    card.classList.remove('swiping');
+  }
+  function onMove(e) {
+    if (!dragging || e.pointerId !== pointerId) return;
+    currentX = e.clientX - startX;
+    currentY = e.clientY - startY;
+    if (Math.abs(currentX) > 5 || Math.abs(currentY) > 5) moved = true;
+    const rot = currentX * 0.06;
+    card.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${rot}deg)`;
+    const absX = Math.abs(currentX);
+    if (currentX > 0) {
+      stamp_like.style.opacity = Math.min(absX / 100, 1);
+      stamp_nope.style.opacity = 0;
+    } else {
+      stamp_nope.style.opacity = Math.min(absX / 100, 1);
+      stamp_like.style.opacity = 0;
+    }
+  }
+  function onEnd(e) {
+    if (!dragging) return;
+    dragging = false;
+    card.classList.remove('dragging');
+    card.classList.add('swiping');
+    try { card.releasePointerCapture(pointerId); } catch (_) {}
+    const elapsed = Date.now() - startTime;
+    // Tap on image (not moved, short, on image) => open lightbox
+    if (!moved && elapsed < 300 && e.target === cardImg) {
+      card.style.transform = '';
+      stamp_like.style.opacity = 0;
+      stamp_nope.style.opacity = 0;
+      openLightbox(kit);
+      currentX = 0; currentY = 0;
+      return;
+    }
+    const threshold = 90;
+    if (currentX > threshold) finishSwipe(card, 'like');
+    else if (currentX < -threshold) finishSwipe(card, 'nope');
+    else {
+      card.style.transform = '';
+      stamp_like.style.opacity = 0;
+      stamp_nope.style.opacity = 0;
+    }
+    currentX = 0; currentY = 0;
+  }
+
+  card.addEventListener('pointerdown', onStart);
+  card.addEventListener('pointermove', onMove);
+  card.addEventListener('pointerup', onEnd);
+  card.addEventListener('pointercancel', onEnd);
+}
+
+function finishSwipe(card, action) {
+  const code = card.dataset.code;
+  const dir = action === 'like' ? 1 : -1;
+  const flyX = dir * (window.innerWidth + 200);
+  card.style.transform = `translate(${flyX}px, -50px) rotate(${dir * 30}deg)`;
+  card.style.opacity = '0';
+  history.push({ code, action });
+  if (history.length > 50) history.shift();
+  seen.add(code);
+  if (action === 'like') { liked.add(code); saveLikes(); }
+  saveSeen();
+  document.getElementById('btn-undo').disabled = false;
+  setTimeout(() => renderStack(), 380);
+}
+
+function programmaticSwipe(action) {
+  const stack = document.getElementById('stack');
+  const top = stack.querySelector('.card:not(.behind):not(.way-behind)');
+  if (!top) return;
+  top.classList.add('swiping');
+  // Animate the card off-screen visually
+  const dir = action === 'like' ? 1 : -1;
+  top.style.transform = `translate(${dir * (window.innerWidth + 200)}px, -50px) rotate(${dir * 30}deg)`;
+  top.style.opacity = '0';
+  // Show stamp briefly
+  const stamp = top.querySelector(action === 'like' ? '.stamp.like' : '.stamp.nope');
+  if (stamp) stamp.style.opacity = '1';
+  // Update state immediately
+  const code = top.dataset.code;
+  history.push({ code, action });
+  if (history.length > 50) history.shift();
+  seen.add(code);
+  if (action === 'like') { liked.add(code); saveLikes(); }
+  saveSeen();
+  document.getElementById('btn-undo').disabled = false;
+  setTimeout(() => renderStack(), 380);
+}
+
+function undo() {
+  if (history.length === 0) return;
+  const last = history.pop();
+  seen.delete(last.code);
+  if (last.action === 'like') liked.delete(last.code);
+  saveLikes();
+  saveSeen();
+  if (history.length === 0) document.getElementById('btn-undo').disabled = true;
+  renderStack();
+}
+
+function resetSeen() {
+  if (!confirm('להתחיל מחדש?\nכל ההחלקות יאופסו (גם רשימת האהובים תתרוקן).\nהאם להמשיך?')) return;
+  seen = new Set();
+  liked = new Set();
+  history = [];
+  saveSeen();
+  saveLikes();
+  document.getElementById('btn-undo').disabled = true;
+  toast('הכל אופס! 🔄');
+  // Force re-render of current tab
+  switchTab(currentTab);
+}
+
+// ============ LIKED VIEW ============
+function getLikedFiltered() {
+  const items = KITS.filter(k => liked.has(k.code));
+  if (filterCat === 'all') return items;
+  return items.filter(k => k.cat === filterCat);
+}
+
+function renderLiked() {
+  const stack = document.getElementById('stack');
+  stack.innerHTML = '';
+  document.getElementById('actions').classList.add('hidden');
+  document.getElementById('hint').classList.add('hidden');
+  document.getElementById('gender-bar').classList.add('hidden');
+
+  if (liked.size === 0) {
+    stack.innerHTML = `
+      <div class="empty">
+        <div class="empty-emoji">💔</div>
+        <div class="empty-title">עוד לא אהבת אף תיק</div>
+        <div class="empty-sub">חזור ל"גלה תיקים" והחלק ימינה על תיקים שאתה אוהב</div>
+        <button class="done-btn" id="liked-go-browse">לגלות תיקים</button>
+      </div>
+    `;
+    document.getElementById('liked-go-browse').addEventListener('click', () => switchTab('browse'));
+    updateCounter();
+    return;
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'liked-wrap';
+
+  const controls = document.createElement('div');
+  controls.className = 'liked-controls';
+
+  // VS mode launcher
+  const vsBtn = document.createElement('button');
+  vsBtn.className = 'vs-launch';
+  vsBtn.disabled = liked.size < 2;
+  vsBtn.innerHTML = liked.size < 2
+    ? `⚔ מצב VS — צריך לפחות 2 אהובים`
+    : `⚔ התחל מצב VS — מצא את המנצח!`;
+  vsBtn.addEventListener('click', startVS);
+  controls.appendChild(vsBtn);
+
+  // Category chips
+  const cats = new Set(KITS.filter(k => liked.has(k.code)).map(k => k.cat));
+  const chipsBar = document.createElement('div');
+  chipsBar.className = 'chips';
+  chipsBar.innerHTML = `<button class="chip ${filterCat === 'all' ? 'active' : ''}" data-cat="all">${CAT_LABELS.all} (${liked.size})</button>` +
+    [...cats].map(c => {
+      const count = KITS.filter(k => liked.has(k.code) && k.cat === c).length;
+      return `<button class="chip ${filterCat === c ? 'active' : ''}" data-cat="${c}">${CAT_LABELS[c] || c} (${count})</button>`;
+    }).join('');
+  controls.appendChild(chipsBar);
+  wrap.appendChild(controls);
+
+  chipsBar.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterCat = chip.dataset.cat;
+      renderLiked();
+    });
+  });
+
+  const items = getLikedFiltered();
+  const gridWrap = document.createElement('div');
+  gridWrap.className = 'grid-wrap';
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  items.forEach((kit, idx) => {
+    const item = document.createElement('div');
+    item.className = 'grid-item';
+    item.style.animationDelay = `${Math.min(idx * 30, 600)}ms`;
+    item.innerHTML = `
+      <button class="grid-remove" data-code="${kit.code}" aria-label="הסר">✕</button>
+      <div class="grid-img" data-code="${kit.code}" style="background-image:url('${kit.img}')"></div>
+      <div class="grid-info">
+        <div class="grid-name">${escapeHtml(kit.name)}</div>
+        <div class="grid-code">${kit.code}</div>
+      </div>
+    `;
+    grid.appendChild(item);
+  });
+  gridWrap.appendChild(grid);
+  wrap.appendChild(gridWrap);
+  stack.appendChild(wrap);
+
+  gridWrap.querySelectorAll('.grid-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const code = btn.dataset.code;
+      liked.delete(code);
+      saveLikes();
+      const kit = KITS.find(k => k.code === code);
+      toast(`הוסר: ${kit ? kit.name : code}`);
+      renderLiked();
+    });
+  });
+  gridWrap.querySelectorAll('.grid-img').forEach(img => {
+    img.addEventListener('click', () => {
+      const kit = KITS.find(k => k.code === img.dataset.code);
+      if (kit) openLightbox(kit);
+    });
+  });
+
+  updateCounter();
+}
+
+// ============ VS MODE ============
+function startVS() {
+  if (liked.size < 2) return;
+  vsMode = true;
+  // Use only liked items (respecting current category filter optionally — let's use ALL liked for fairness)
+  // Actually, use the currently filtered set if filter is active, else all liked
+  const baseSet = filterCat === 'all'
+    ? KITS.filter(k => liked.has(k.code))
+    : KITS.filter(k => liked.has(k.code) && k.cat === filterCat);
+  if (baseSet.length < 2) {
+    toast('צריך לפחות 2 פריטים בקטגוריה הזו');
+    return;
+  }
+  // Shuffle
+  vsRemaining = baseSet.map(k => k.code);
+  for (let i = vsRemaining.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [vsRemaining[i], vsRemaining[j]] = [vsRemaining[j], vsRemaining[i]];
+  }
+  vsTotalStart = vsRemaining.length;
+  document.getElementById('vs-overlay').classList.add('show');
+  showVSPair();
+}
+
+function showVSPair() {
+  const arena = document.getElementById('vs-arena');
+  arena.innerHTML = '';
+  const progress = document.getElementById('vs-progress');
+  const title = document.getElementById('vs-title');
+
+  if (vsRemaining.length === 1) {
+    // Winner!
+    const winnerCode = vsRemaining[0];
+    const kit = KITS.find(k => k.code === winnerCode);
+    progress.textContent = '🏆 המנצח';
+    title.textContent = 'הנה הזוכה!';
+    arena.innerHTML = `
+      <div class="vs-winner-screen">
+        <div class="vs-trophy">🏆</div>
+        <div class="vs-winner-title">המנצח שלך!</div>
+        <div class="vs-winner-card" id="vs-winner-card">
+          <div class="vs-winner-img" style="background-image:url('${kit.img}')"></div>
+          <div class="vs-winner-info">
+            <div class="vs-winner-name">${escapeHtml(kit.name)}</div>
+            <div class="vs-winner-code">${kit.code}</div>
+          </div>
+        </div>
+        <button class="done-btn alt2" id="vs-restart">⚔ עוד סיבוב</button>
+        <button class="done-btn alt" id="vs-finish">סיום</button>
+      </div>
+    `;
+    document.getElementById('vs-winner-card').addEventListener('click', () => openLightbox(kit));
+    document.getElementById('vs-restart').addEventListener('click', () => {
+      closeVS();
+      setTimeout(startVS, 100);
+    });
+    document.getElementById('vs-finish').addEventListener('click', closeVS);
+    return;
+  }
+
+  // Pick two
+  const a = vsRemaining[0];
+  const b = vsRemaining[1];
+  const kitA = KITS.find(k => k.code === a);
+  const kitB = KITS.find(k => k.code === b);
+  vsCurrentPair = [a, b];
+
+  const round = vsTotalStart - vsRemaining.length + 1;
+  const totalRounds = vsTotalStart - 1;
+  progress.textContent = `סיבוב ${round} / ${totalRounds}`;
+  title.textContent = 'מי עדיף?';
+
+  arena.innerHTML = `
+    <div class="vs-card" data-pick="a">
+      <div class="vs-card-img" data-zoom="a" style="background-image:url('${kitA.img}')"></div>
+      <div class="vs-card-info">
+        <div class="vs-card-name">${escapeHtml(kitA.name)}</div>
+        <div class="vs-card-code">${kitA.code}</div>
+      </div>
+      <button class="vs-card-pick" data-choose="a"><span class="check">✓</span> בחר בזה</button>
+    </div>
+    <div class="vs-divider">VS</div>
+    <div class="vs-card" data-pick="b">
+      <div class="vs-card-img" data-zoom="b" style="background-image:url('${kitB.img}')"></div>
+      <div class="vs-card-info">
+        <div class="vs-card-name">${escapeHtml(kitB.name)}</div>
+        <div class="vs-card-code">${kitB.code}</div>
+      </div>
+      <button class="vs-card-pick" data-choose="b"><span class="check">✓</span> בחר בזה</button>
+    </div>
+  `;
+
+  arena.querySelectorAll('.vs-card-pick').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      pickVS(btn.dataset.choose);
+    });
+  });
+  arena.querySelectorAll('.vs-card-img').forEach(img => {
+    img.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const which = img.dataset.zoom;
+      openLightbox(which === 'a' ? kitA : kitB);
+    });
+  });
+}
+
+function pickVS(which) {
+  const [a, b] = vsCurrentPair;
+  const arena = document.getElementById('vs-arena');
+  const cards = arena.querySelectorAll('.vs-card');
+  const winnerEl = arena.querySelector(`.vs-card[data-pick="${which}"]`);
+  const loserEl = arena.querySelector(`.vs-card[data-pick="${which === 'a' ? 'b' : 'a'}"]`);
+  winnerEl.classList.add('winner');
+  loserEl.classList.add('loser');
+  const eliminated = which === 'a' ? b : a;
+  // Remove eliminated; winner stays
+  vsRemaining = vsRemaining.filter(c => c !== eliminated);
+  setTimeout(showVSPair, 650);
+}
+
+function closeVS() {
+  vsMode = false;
+  vsRemaining = [];
+  vsCurrentPair = null;
+  document.getElementById('vs-overlay').classList.remove('show');
+}
+
+document.getElementById('vs-close').addEventListener('click', () => {
+  if (vsRemaining.length > 1 && !confirm('לצאת ממצב VS? ההתקדמות תאבד.')) return;
+  closeVS();
+});
+
+// ============ TABS ============
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  if (tab === 'browse') {
+    document.getElementById('gender-bar').classList.remove('hidden');
+    renderStack();
+  } else {
+    renderLiked();
+  }
+}
+
+// ============ EVENTS ============
+document.getElementById('btn-nope').addEventListener('click', () => programmaticSwipe('nope'));
+document.getElementById('btn-like').addEventListener('click', () => programmaticSwipe('like'));
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => switchTab(t.dataset.tab));
+});
+document.querySelectorAll('.gender-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    genderFilter = chip.dataset.gender;
+    saveGender();
+    document.querySelectorAll('.gender-chip').forEach(c => c.classList.toggle('active', c.dataset.gender === genderFilter));
+    renderStack();
+  });
+});
+// Set initial gender chip state
+document.querySelectorAll('.gender-chip').forEach(c => c.classList.toggle('active', c.dataset.gender === genderFilter));
+
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('lightbox').classList.contains('show')) {
+    if (e.key === 'Escape') closeLightbox();
+    return;
+  }
+  if (vsMode) {
+    if (e.key === 'Escape') document.getElementById('vs-close').click();
+    return;
+  }
+  if (currentTab !== 'browse') return;
+  if (e.key === 'ArrowRight') programmaticSwipe('like');
+  else if (e.key === 'ArrowLeft') programmaticSwipe('nope');
+  else if (e.key === 'z' && (e.ctrlKey || e.metaKey)) undo();
+});
+
+renderStack();
+</script>
+</body>
+</html>
