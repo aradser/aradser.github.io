@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>קל-גב • בחירת תיק</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
     user-select: none;
     -webkit-user-select: none;
   }
-  body { touch-action: none; }
+  body { touch-action: pinch-zoom; }
   body.allow-scroll { touch-action: auto; overflow: auto; }
   body::before {
     content: '';
@@ -520,13 +520,22 @@
   }
   .vs-header {
     flex-shrink: 0;
-    padding: 16px 4px 6px;
+    padding: 10px 4px 4px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: #fff;
     position: relative;
     z-index: 2;
+    gap: 10px;
+  }
+  .vs-header-title {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff;
+    flex: 1;
+    text-align: center;
   }
   .vs-close {
     background: rgba(255,255,255,0.15);
@@ -549,22 +558,12 @@
     padding: 8px 16px;
     border-radius: 999px;
   }
-  .vs-title-bar {
-    flex-shrink: 0;
-    text-align: center;
-    color: #fff;
-    font-family: 'Fredoka', sans-serif;
-    font-weight: 700;
-    font-size: 22px;
-    padding: 6px 0 14px;
-    position: relative;
-    z-index: 2;
-  }
+  .vs-title-bar { display: none; }
   .vs-arena {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
     min-height: 0;
     position: relative;
     z-index: 2;
@@ -581,6 +580,7 @@
     transition: transform 0.2s, box-shadow 0.2s;
     min-height: 0;
     position: relative;
+    cursor: pointer;
   }
   .vs-card.winner { animation: winnerPulse 0.6s ease-out; }
   .vs-card.loser { animation: loserFade 0.5s ease-out forwards; }
@@ -590,7 +590,7 @@
     100% { transform: scale(1); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
   }
   @keyframes loserFade {
-    to { transform: scale(0.8) rotate(-3deg); opacity: 0.2; }
+    to { opacity: 0.15; }
   }
   .vs-card-img {
     flex: 1;
@@ -600,50 +600,43 @@
     background-color: #faf7ff;
     min-height: 0;
     position: relative;
-    cursor: zoom-in;
   }
-  .vs-card-pick {
-    flex-shrink: 0;
-    width: 100%;
-    border: none;
-    background: linear-gradient(135deg, var(--green), #16a34a);
-    color: #fff;
-    padding: 16px 12px;
-    font-family: 'Fredoka', sans-serif;
-    font-weight: 700;
-    font-size: 18px;
-    cursor: pointer;
-    letter-spacing: 0.02em;
-    border-top: 3px solid var(--ink);
-    transition: all 0.15s;
+  .vs-zoom-btn {
+    position: absolute;
+    top: 10px;
+    inset-inline-end: 10px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.88);
+    border: 2px solid var(--ink);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-  }
-  .vs-card-pick:active {
-    background: linear-gradient(135deg, #16a34a, #15803d);
-    padding-top: 18px;
-    padding-bottom: 14px;
-  }
-  .vs-card-pick .check {
-    font-size: 22px;
-    line-height: 1;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 3;
+    -webkit-tap-highlight-color: transparent;
   }
   .vs-card-info {
-    flex-shrink: 0;
-    padding: 12px 16px;
-    background: var(--ink);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 32px 14px 12px;
+    background: linear-gradient(transparent, rgba(26, 19, 64, 0.9));
     color: #fff;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
+    pointer-events: none;
   }
   .vs-card-name {
     font-family: 'Fredoka', sans-serif;
     font-weight: 600;
-    font-size: 18px;
+    font-size: 14px;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -663,12 +656,12 @@
     text-align: center;
     font-family: 'Fredoka', sans-serif;
     font-weight: 900;
-    font-size: 32px;
+    font-size: 22px;
     color: var(--yellow);
     text-shadow: 3px 3px 0 var(--ink), -2px -2px 0 var(--pink);
     transform: rotate(-4deg);
     letter-spacing: 0.08em;
-    padding: 4px 0;
+    padding: 2px 0;
     position: relative;
   }
   .vs-divider::before, .vs-divider::after {
@@ -865,11 +858,11 @@
 <div class="vs-overlay" id="vs-overlay">
   <div class="vs-header">
     <button class="vs-close" id="vs-close" aria-label="סגור">✕</button>
+    <div class="vs-header-title" id="vs-title">מי עדיף?</div>
     <div class="vs-progress" id="vs-progress">— / —</div>
   </div>
-  <div class="vs-title-bar" id="vs-title">מי עדיף?</div>
   <div class="vs-arena" id="vs-arena"></div>
-  <div class="vs-instruction">הקש על "בחר בזה" כדי לבחור • הקש על התמונה להגדלה</div>
+  <div class="vs-instruction">הקש על תיק לבחירה  •  🔍 להגדלה</div>
 </div>
 
 <!-- Lightbox -->
@@ -1347,34 +1340,36 @@ function showVSPair() {
 
   arena.innerHTML = `
     <div class="vs-card" data-pick="a">
-      <div class="vs-card-img" data-zoom="a" style="background-image:url('${kitA.img}')"></div>
-      <div class="vs-card-info">
-        <div class="vs-card-name">${escapeHtml(kitA.name)}</div>
-        <div class="vs-card-code">${kitA.code}</div>
+      <div class="vs-card-img" style="background-image:url('${kitA.img}')">
+        <div class="vs-card-info">
+          <div class="vs-card-name">${escapeHtml(kitA.name)}</div>
+          <div class="vs-card-code">${kitA.code}</div>
+        </div>
+        <button class="vs-zoom-btn" data-zoom="a" aria-label="הגדל">🔍</button>
       </div>
-      <button class="vs-card-pick" data-choose="a"><span class="check">✓</span> בחר בזה</button>
     </div>
     <div class="vs-divider">VS</div>
     <div class="vs-card" data-pick="b">
-      <div class="vs-card-img" data-zoom="b" style="background-image:url('${kitB.img}')"></div>
-      <div class="vs-card-info">
-        <div class="vs-card-name">${escapeHtml(kitB.name)}</div>
-        <div class="vs-card-code">${kitB.code}</div>
+      <div class="vs-card-img" style="background-image:url('${kitB.img}')">
+        <div class="vs-card-info">
+          <div class="vs-card-name">${escapeHtml(kitB.name)}</div>
+          <div class="vs-card-code">${kitB.code}</div>
+        </div>
+        <button class="vs-zoom-btn" data-zoom="b" aria-label="הגדל">🔍</button>
       </div>
-      <button class="vs-card-pick" data-choose="b"><span class="check">✓</span> בחר בזה</button>
     </div>
   `;
 
-  arena.querySelectorAll('.vs-card-pick').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      pickVS(btn.dataset.choose);
+  arena.querySelectorAll('.vs-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.vs-zoom-btn')) return;
+      pickVS(card.dataset.pick);
     });
   });
-  arena.querySelectorAll('.vs-card-img').forEach(img => {
-    img.addEventListener('click', (e) => {
+  arena.querySelectorAll('.vs-zoom-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const which = img.dataset.zoom;
+      const which = btn.dataset.zoom;
       openLightbox(which === 'a' ? kitA : kitB);
     });
   });
